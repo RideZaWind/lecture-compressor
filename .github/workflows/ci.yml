@@ -68,3 +68,4 @@ jobs:
           # Restart the apps using PM2
           pm2 restart flask-app
           pm2 restart celery-worker
+          pm2 restart celery-beat

@@ -2,9 +2,9 @@ from bson import ObjectId
 from celery import Celery
 import os
 import yt_dlp
-import numpy as np
 import subprocess
 import re
+import time
 from datetime import datetime
 import tempfile
 
@@ -180,3 +180,23 @@ def process_video(input_file, output_file, db_threshold=-45, speed_rate=1.5, min
     finally:
         if os.path.exists(script_path):
             os.remove(script_path)
+            
+@celery.task(name="cleanup_old_videos")
+def cleanup_old_videos():
+    # 86400 seconds = 24 hours
+    threshold = time.time() - 86400 
+
+    if not os.path.exists(EXPORT_DIR):
+        return "Export directory not found."
+
+    count = 0
+    for filename in os.listdir(EXPORT_DIR):
+        file_path = os.path.join(EXPORT_DIR, filename)
+        
+        # Check if it's a file and if it's older than the threshold
+        if os.path.isfile(file_path):
+            if os.path.getmtime(file_path) < threshold:
+                os.remove(file_path)
+                count += 1
+    
+    return f"Cleaned up {count} old video files."
