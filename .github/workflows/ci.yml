@@ -47,3 +47,24 @@ jobs:
       env:
         MONGO_URI: mongodb://localhost:27017
         REDIS_URL: redis://localhost:6379/0
+
+  deploy:
+    needs: test # Only deploy if tests pass!
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' # Only deploy from the main branch
+
+    steps:
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          cd ~/LectureCompressor
+          git pull origin main
+          source venv/bin/activate
+          pip install -r requirements.txt
+          # Restart the apps using PM2
+          pm2 restart flask-app
+          pm2 restart celery-worker
