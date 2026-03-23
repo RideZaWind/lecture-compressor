@@ -29,16 +29,12 @@ def customize():
     ydl_opts = {
         'quiet': True, 
         'skip_download': True,
-        # REMOVE the cookiefile line
-        'username': 'oauth2',
-        'password': '',
-        # Ensure Deno is used for the JS challenges
-        'javascript_runtimes': ['deno'],
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['web', 'android'],
-                'po_token': ['web+web_embedded_player'],
-            }
+        'proxy': "http://miprkppy:ths57nwi9fq9@31.59.20.176:6754/",
+        'cookiefile': COOKIES_PATH,
+        "sleep_interval": 3,
+        "max_sleep_interval": 8,
+        "http_headers": {
+            "User-Agent": "Mozilla/5.0",
         },
     }
 
