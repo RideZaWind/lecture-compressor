@@ -10,6 +10,8 @@ from app.tasks import process_video_task
 
 app = Flask(__name__)
 
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+COOKIES_PATH = os.path.join(BASE_DIR, "youtube_cookies.txt")
 EXPORT_FOLDER = os.path.join(app.root_path, '..', 'exports') 
 os.makedirs(EXPORT_FOLDER, exist_ok=True)
 
@@ -24,7 +26,11 @@ def index():
 @app.route('/customize')
 def customize():
     video_url = request.args.get('url')
-    ydl_opts = {'quiet': True, 'skip_download': True}
+    ydl_opts = {
+        'quiet': True, 
+        'skip_download': True,
+        'cookiefile': COOKIES_PATH,
+    }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
