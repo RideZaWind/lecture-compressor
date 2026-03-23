@@ -1,0 +1,7 @@
+*.ipynb
+.env
+*.mp4
+
+exports/
+__pycache__/
+.venv/

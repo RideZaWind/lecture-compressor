@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Customize Processing | Video Editor</title>
+    <style>
+        /* Reusing your base styles */
+        body { font-family: sans-serif; background: #f8fafc; display: flex; justify-content: center; padding: 2rem; }
+        .config-card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        .video-preview { margin-bottom: 1.5rem; border-bottom: 1px solid #e2e4e6; padding-bottom: 1rem; }
+        .form-group { margin-bottom: 1.25rem; text-align: left; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #1e293b; }
+        input[type="number"], input[type="range"] { width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; }
+        .btn-process { background: #6367f1; color: white; border: none; padding: 1rem; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="config-card">
+    <div class="video-preview">
+        <img src="{{ video.thumbnail }}" style="width:100%; border-radius: 8px;">
+        <h3>{{ video.title }}</h3>
+    </div>
+
+    <form action="/start-processing" method="POST">
+        <input type="hidden" name="video_url" value="{{ video.url }}">
+
+        <div class="form-group">
+            <label>Silence Threshold (dB)</label>
+            <input type="number" name="db_threshold" value="-30" step="1">
+            <small style="color: #64748b;">Lower is more sensitive (e.g., -40dB)</small>
+        </div>
+
+        <div class="form-group">
+            <label>Playback Speedup (x)</label>
+            <input type="range" name="speed" min="1.0" max="2.5" step="0.1" oninput="this.nextElementSibling.value = this.value">
+            <output>1.5</output>x
+        </div>
+
+        <div class="form-group">
+            <label>Minimum Silence Duration (sec)</label>
+            <input type="number" name="min_silence" value="0.5" step="0.1">
+        </div>
+
+        <button type="submit" class="btn-process">Start Auto-Edit</button>
+    </form>
+</div>
+
+</body>
+</html>

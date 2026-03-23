@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lecture Trimmer</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+    <nav class="p-6 border-b border-gray-800">
+        <h1 class="text-2xl font-bold text-blue-500">LectureTrimmer.io</h1>
+    </nav>
+    <main class="container mx-auto mt-10 p-4">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
