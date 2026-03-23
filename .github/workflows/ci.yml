@@ -61,7 +61,7 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          cd ~/LectureCompressor
+          cd ~/lecture-compressor
           git pull origin main
           source venv/bin/activate
           pip install -r requirements.txt
