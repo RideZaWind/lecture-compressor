@@ -90,17 +90,17 @@ def download_youtube_video(url, output_path_full):
         'format': 'best[ext=mp4]/best',
         'outtmpl': f'{path_without_ext}.%(ext)s',
         'noplaylist': True,
-        'cookiefile': COOKIES_PATH,
-        # This tells yt-dlp to use Node to solve the JS challenges
-        'javascript_runtimes': ['node'],
-        # Add these to help GetPOT find a valid token
+        # REMOVE the cookiefile line
+        'username': 'oauth2',
+        'password': '',
+        # Ensure Deno is used for the JS challenges
+        'javascript_runtimes': ['deno'],
         'extractor_args': {
             'youtube': {
                 'player_client': ['web', 'android'],
                 'po_token': ['web+web_embedded_player'],
             }
         },
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
     }
     
     print(f"Starting download to: {path_without_ext}")
