@@ -17,6 +17,7 @@ celery = Celery('tasks', broker='redis://localhost:6379/0')
 # 2. Define the Export Path
 # This ensures files go into a dedicated folder at the root of your project
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+COOKIES_PATH = os.path.join(BASE_DIR, "youtube_cookies.txt")
 EXPORT_DIR = os.path.join(BASE_DIR, "exports")
 
 # Ensure the exports folder exists so FFmpeg doesn't crash
@@ -81,17 +82,15 @@ def process_video_task(video_id):
                 print(f"Could not delete {input_file}: {e}")
 
 def download_youtube_video(url, output_path_full):
-    # Ensure we use double backslashes for Windows if it's absolute, 
-    # or just use forward slashes (Python handles this fine)
     clean_path = output_path_full.replace("\\", "/")
     path_without_ext = os.path.splitext(clean_path)[0]
     
+
     ydl_opts = {
-        # 'best' instead of 'bestvideo+bestaudio' avoids the 'merge' hang
-        'format': 'best[ext=mp4]/best', 
+        'format': 'best[ext=mp4]/best',
         'outtmpl': f'{path_without_ext}.%(ext)s',
         'noplaylist': True,
-        'quiet': False,  # Keep this False so we can see the 'Merging' message if it happens
+        'cookiefile': COOKIES_PATH,
     }
     
     print(f"Starting download to: {path_without_ext}")

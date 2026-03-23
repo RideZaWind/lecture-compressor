@@ -1,6 +1,7 @@
 *.ipynb
 .env
 *.mp4
+youtube_cookies.txt
 
 exports/
 __pycache__/
