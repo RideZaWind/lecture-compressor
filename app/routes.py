@@ -31,11 +31,6 @@ def customize():
         'skip_download': True,
         'proxy': "http://miprkppy:ths57nwi9fq9@31.59.20.176:6754/",
         'cookiefile': COOKIES_PATH,
-        "sleep_interval": 3,
-        "max_sleep_interval": 8,
-        "http_headers": {
-            "User-Agent": "Mozilla/5.0",
-        },
     }
 
     try:
