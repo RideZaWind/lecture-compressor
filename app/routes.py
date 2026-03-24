@@ -73,13 +73,12 @@ def start_processing():
 def view_status(video_id):
     return render_template('status.html', video_id=video_id)
 
-from flask import url_for, make_response
-from bson.objectid import ObjectId
 
 @app.route('/status-poll/<video_id>')
 def status_poll(video_id):
     document = videos_collection.find_one({"_id": ObjectId(video_id)})
     if not document:
+        # TODO: look into a better response
         return "<div class='text-red-500'>Error: Job not found.</div>", 404
     
     status = document.get("status")
