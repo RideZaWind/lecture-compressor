@@ -95,8 +95,11 @@ def download_youtube_video(url, output_path_full):
         'format': 'best[ext=mp4]/best',
         'outtmpl': f'{path_without_ext}.%(ext)s',
         'noplaylist': True,
-        # 'proxy': PROXY,
+        'proxy': PROXY,
         'cookiefile': COOKIES_PATH,
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0',
+        }
     }
     
     print(f"Starting download to: {path_without_ext}")

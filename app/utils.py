@@ -22,8 +22,11 @@ def can_download_video(url, cookies_path=None):
         'simulate': True,          # Do NOT download the video
         'quiet': True,             # Keep logs clean
         'no_warnings': True,
-        # 'proxy': PROXY,
-        'cookiefile': cookies_path
+        'proxy': PROXY,
+        'cookiefile': cookies_path,
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0',
+        }
     }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:

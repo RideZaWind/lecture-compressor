@@ -52,8 +52,11 @@ def customize():
     ydl_opts = {
         'quiet': True, 
         'skip_download': True,
-        # 'proxy': PROXY,
+        'proxy': PROXY,
         'cookiefile': COOKIES_PATH,
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0',
+        }
     }
 
     try:
