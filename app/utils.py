@@ -1,12 +1,17 @@
 import yt_dlp
 import re
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+PROXY = os.getenv("PROXY")
 
 def is_valid_youtube_url(url):
     # Regex to capture standard, shortened, and embed links
     youtube_regex = (
         r'(https?://)?(www\.)?'
-        '(youtube|youtu|youtube-nocookie)\.(com|be)/'
-        '(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})'
+        r'(youtube|youtu|youtube-nocookie)\.(com|be)/'
+        r'(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})'
     )
     
     match = re.match(youtube_regex, url)
@@ -17,8 +22,8 @@ def can_download_video(url, cookies_path=None):
         'simulate': True,          # Do NOT download the video
         'quiet': True,             # Keep logs clean
         'no_warnings': True,
-        'cookiefile': cookies_path,
-        'javascript_runtimes': ['deno'],
+        # 'proxy': PROXY,
+        'cookiefile': cookies_path
     }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -29,3 +34,27 @@ def can_download_video(url, cookies_path=None):
         # Catch private, deleted, or regional block errors
         error_msg = str(e).split(';')[0] # Clean up the error string
         return False, error_msg
+    
+def format_seconds(seconds):
+    minutes, seconds = divmod(int(seconds), 60)
+    if minutes > 0:
+        return f"{minutes}m {seconds}s"
+    return f"{seconds}s"
+
+import subprocess
+
+def get_video_duration(file_path):
+    """Returns the duration of a video in seconds as a float."""
+    cmd = [
+        'ffprobe', 
+        '-v', 'error', 
+        '-show_entries', 'format=duration', 
+        '-of', 'default=noprint_wrappers=1:nokey=1', 
+        file_path
+    ]
+    try:
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
+        return float(result.stdout)
+    except Exception as e:
+        print(f"Error probing video: {e}")
+        return 0.0

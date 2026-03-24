@@ -7,8 +7,10 @@ import re
 import time
 from datetime import datetime
 import tempfile
+from dotenv import load_dotenv
 
 from app.database import videos_collection
+from app.utils import get_video_duration
     
 # 1. Initialize Celery
 # In production, move 'redis://localhost:6379/0' to an environment variable
@@ -16,6 +18,8 @@ celery = Celery('tasks', broker='redis://localhost:6379/0')
 
 # 2. Define the Export Path
 # This ensures files go into a dedicated folder at the root of your project
+load_dotenv()
+PROXY = os.getenv("PROXY")
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 COOKIES_PATH = os.path.join(BASE_DIR, "youtube_cookies.txt")
 EXPORT_DIR = os.path.join(BASE_DIR, "exports")
@@ -49,14 +53,15 @@ def process_video_task(video_id):
 
         # Step 2: Process with FFmpeg
         videos_collection.update_one({"_id": oid}, {"$set": {"status": "processing"}})
-        process_video(input_file, output_path, params["threshold"], params["speed"], params["min_silence"])
+        stats = process_video(input_file, output_path, params["threshold"], params["speed"], params["min_silence"])
 
         # Step 3: Success Update
         videos_collection.update_one({"_id": oid}, {
             "$set": {
                 "status": "completed", 
                 "path": output_filename, # Store just the filename for the download route
-                "completed_at": datetime.now()
+                "completed_at": datetime.now(),
+                "stats": stats
             }
         })
         print(f"Task Completed Successfully: {video_id}")
@@ -90,7 +95,7 @@ def download_youtube_video(url, output_path_full):
         'format': 'best[ext=mp4]/best',
         'outtmpl': f'{path_without_ext}.%(ext)s',
         'noplaylist': True,
-        'proxy': "http://miprkppy:ths57nwi9fq9@31.59.20.176:6754/",
+        # 'proxy': PROXY,
         'cookiefile': COOKIES_PATH,
     }
     
@@ -140,6 +145,8 @@ def get_silence_intervals(input_file, threshold=-45, duration=0.5):
             os.remove(log_path)
 
 def process_video(input_file, output_file, db_threshold=-45, speed_rate=1.5, min_silence_duration = 0.5):
+    orig_duration = get_video_duration(input_file)
+    
     """Pass 2: Use a script file to bypass Windows command length limits."""
     intervals = get_silence_intervals(input_file, db_threshold, min_silence_duration)
     
@@ -180,6 +187,17 @@ def process_video(input_file, output_file, db_threshold=-45, speed_rate=1.5, min
     finally:
         if os.path.exists(script_path):
             os.remove(script_path)
+            
+    final_duration = get_video_duration(output_file)
+    
+    stats = {
+        "original_duration": orig_duration,
+        "final_duration": final_duration,
+        "time_saved": orig_duration - final_duration,
+    }
+    
+    return stats
+    
             
 @celery.task(name="cleanup_old_videos")
 def cleanup_old_videos():

@@ -2,14 +2,19 @@ from flask import Flask, render_template, request, redirect, url_for, send_from_
 from bson.objectid import ObjectId
 import yt_dlp
 import os
+from dotenv import load_dotenv
 
 from app.database import videos_collection, create_video_entry
 from app.tasks import process_video_task
-from app.utils import is_valid_youtube_url
+from app.utils import is_valid_youtube_url, format_seconds
+
 
 
 app = Flask(__name__)
+app.jinja_env.filters['format_seconds'] = format_seconds
 
+load_dotenv()
+PROXY = os.getenv("PROXY")
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 COOKIES_PATH = os.path.join(BASE_DIR, "youtube_cookies.txt")
 EXPORT_FOLDER = os.path.join(app.root_path, '..', 'exports') 
@@ -47,7 +52,7 @@ def customize():
     ydl_opts = {
         'quiet': True, 
         'skip_download': True,
-        'proxy': "http://miprkppy:ths57nwi9fq9@31.59.20.176:6754/",
+        # 'proxy': PROXY,
         'cookiefile': COOKIES_PATH,
     }
 
