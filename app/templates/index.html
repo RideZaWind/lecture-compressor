@@ -9,23 +9,42 @@
             Enter a YouTube URL to remove silence and optimize playback.
         </p>
 
-        <form action="/" method="POST">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="mb-4 p-3 rounded-lg bg-red-900/30 border border-red-500/50 text-red-400 text-sm">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form action="/" method="POST" id="url-form">
             <div class="flex gap-2 bg-gray-900 border border-gray-700 rounded-lg p-2 focus-within:border-blue-500">
                 <input 
                     type="url" 
+                    id="youtube_url"
                     name="youtube_url" 
                     placeholder="Paste YouTube link here..." 
                     required
                     class="flex-1 bg-transparent outline-none px-2 text-white placeholder-gray-500"
+                    oninput="validateRegex()"
                 >
                 <button 
                     type="submit"
-                    class="bg-blue-600 hover:bg-blue-700 transition px-4 py-2 rounded-md font-semibold"
+                    id="submit-btn"
+                    disabled
+                    class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition px-4 py-2 rounded-md font-semibold flex items-center gap-2"
                 >
-                    Process
+                    <span id="btn-text">Process</span>
+                    <div id="loading-spinner" class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
                 </button>
             </div>
         </form>
+
+        <p id="regex-error" class="mt-2 text-xs text-red-500 hidden">
+            Please enter a valid YouTube link format.
+        </p>
 
         <p class="mt-4 text-xs text-gray-500">
             Your video will be saved to the processing queue.
@@ -33,4 +52,30 @@
 
     </div>
 </div>
+
+<script>
+function validateRegex() {
+    const url = document.getElementById('youtube_url').value;
+    const btn = document.getElementById('submit-btn');
+    const errorHint = document.getElementById('regex-error');
+    
+    // Matches standard, short, and embed YouTube URLs
+    const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\/.+$/;
+    
+    if (pattern.test(url)) {
+        btn.disabled = false;
+        errorHint.classList.add('hidden');
+    } else {
+        btn.disabled = true;
+        if (url.length > 0) errorHint.classList.remove('hidden');
+    }
+}
+
+// Show loading state when form is submitted
+document.getElementById('url-form').onsubmit = function() {
+    document.getElementById('btn-text').innerText = "Checking...";
+    document.getElementById('loading-spinner').classList.remove('hidden');
+    document.getElementById('submit-btn').classList.add('opacity-70');
+};
+</script>
 {% endblock %}

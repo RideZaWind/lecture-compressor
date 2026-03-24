@@ -1,11 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory, make_response
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, flash
 from bson.objectid import ObjectId
 import yt_dlp
 import os
 
-
 from app.database import videos_collection, create_video_entry
 from app.tasks import process_video_task
+from app.utils import is_valid_youtube_url
 
 
 app = Flask(__name__)
@@ -15,12 +15,30 @@ COOKIES_PATH = os.path.join(BASE_DIR, "youtube_cookies.txt")
 EXPORT_FOLDER = os.path.join(app.root_path, '..', 'exports') 
 os.makedirs(EXPORT_FOLDER, exist_ok=True)
 
-@app.route('/', methods=["GET", "POST"])
+from flask import flash, redirect, url_for, request, render_template
+from app.utils import is_valid_youtube_url, can_download_video
+
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    if request.method == "POST":
-        youtube_url = request.form.get('youtube_url')
-        # Optional: Add basic URL validation here
-        return redirect(url_for('customize', url=youtube_url))
+    if request.method == 'POST':
+        url = request.form.get('youtube_url')
+        
+        # 1. Double check the format
+        if not is_valid_youtube_url(url):
+            flash("Invalid YouTube URL format.", "error")
+            return redirect(url_for('index'))
+
+        # 2. Pre-flight check (Simulate download)
+        # Assuming COOKIES_PATH is defined in your config
+        can_dl, error_msg = can_download_video(url, COOKIES_PATH)
+        
+        if not can_dl:
+            flash(f"Could not reach video: {error_msg}", "error")
+            return redirect(url_for('index'))
+
+        # 3. Success -> Move to next step (Customization)
+        return redirect(url_for('customize', url=url))
+        
     return render_template('index.html')
 
 @app.route('/customize')
@@ -162,6 +180,27 @@ def serve_video(filename):
         mimetype='video/mp4',
         as_attachment=False # Crucial: False means 'display in browser'
     )
+    
+
+@app.route('/submit-url', methods=['POST'])
+def submit_url():
+    url = request.form.get('youtube_url')
+    
+    # 1. Structural Check (Regex)
+    if not is_valid_youtube_url(url):
+        flash("That format doesn't look like a YouTube link.", "error")
+        return redirect(url_for('index'))
+
+    # 2. Availability Check (Simulation)
+    # Pass your COOKIES_PATH here to check for age-restricted videos
+    is_available, error = can_download_video(url, COOKIES_PATH)
+    
+    if not is_available:
+        flash(f"YouTube says: {error}", "error")
+        return redirect(url_for('index'))
+
+    # 3. Success
+    return redirect(url_for('customize_page', video_url=url))
 
 def main():
     app.run()
