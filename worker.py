@@ -5,8 +5,8 @@ if __name__ == '__main__':
     celery.start()
     
 celery.conf.beat_schedule = {
-    'cleanup-every-midnight': {
-        'task': 'cleanup_old_videos',
-        'schedule': crontab(minute=0, hour=0), # Runs at 00:00 every day
+    'cleanup-hourly': {
+        'task': 'app.tasks.cleanup_old_videos',
+        'schedule': crontab(minute=0), # Runs once an hour, at the 0 minute mark
     },
 }

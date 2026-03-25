@@ -216,8 +216,8 @@ def process_video(input_file, output_file, db_threshold=-45, speed_rate=1.5, min
             
 @celery.task(name="cleanup_old_videos")
 def cleanup_old_videos():
-    # 86400 seconds = 24 hours
-    threshold = time.time() - 86400 
+    # 3600 seconds = 1 hours
+    threshold = time.time() - 3600 
 
     if not os.path.exists(EXPORT_DIR):
         return "Export directory not found."
