@@ -3,11 +3,12 @@ from bson.objectid import ObjectId
 import yt_dlp
 import os
 from dotenv import load_dotenv
+import openai
 
 from app.database import videos_collection, create_video_entry
 from app.tasks import process_video_task
 from app.utils import is_valid_youtube_url, format_seconds
-
+from app.chat import get_video_data
 
 
 app = Flask(__name__)
@@ -113,23 +114,28 @@ def status_poll(video_id):
     if status == "completed":
         file_name = document.get("path")
         video_url = url_for('serve_video', filename=file_name)
-        
+
+
         return f"""
         <div id="status-display" class="bg-gray-800 p-8 rounded-2xl shadow-2xl border border-green-500/50">
             <h2 class="text-green-400 font-bold text-2xl mb-4">Compression Complete!</h2>
-            
+
             <div class="aspect-video w-full mb-6 bg-black rounded-lg overflow-hidden shadow-inner">
                 <video controls class="w-full h-full">
                     <source src="{video_url}" type="video/mp4">
-                    Your browser does not support the video tag.
                 </video>
             </div>
-            
+
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="{video_url}" download class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-md font-bold transition">
+                <a href="{video_url}" download class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-md font-bold transition text-center">
                     Download MP4
                 </a>
-                <a href="/" class="bg-gray-700 hover:bg-gray-600 text-white px-8 py-3 rounded-md font-bold transition">
+
+                <a href="/chat/{video_id}" target="_blank" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-md font-bold transition text-center flex items-center justify-center">
+                    AI Summary & Chat
+                </a>
+
+                <a href="/" class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-md font-bold transition text-center">
                     New Video
                 </a>
             </div>
@@ -209,6 +215,25 @@ def submit_url():
 
     # 3. Success
     return redirect(url_for('customize_page', video_url=url))
+
+@app.route('/chat/<video_id>')
+def video_chat(video_id):
+    return render_template('chat_interface.html', video_id=video_id)
+
+@app.route('/api/chat', methods=['POST'])
+def ai_chat():
+    data = request.json
+    user_message = data.get('message')
+    title, description, transcript_text = get_video_data(data.get('video_id'))
+
+    response = openai.chat.completions.create(
+        model="gpt-4o-mini", # Efficient and cheap for summaries
+        messages=[
+            {"role": "system", "content": f"You are an assistant for this video. Metadata: {title}. Description: {description}. Transcript: {transcript_text}"},
+            {"role": "user", "content": user_message}
+        ]
+    )
+    return {"reply": response.choices[0].message.content}
 
 def main():
     app.run()
