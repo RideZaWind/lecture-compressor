@@ -147,59 +147,71 @@ def get_silence_intervals(input_file, threshold=-45, duration=0.5):
         if os.path.exists(log_path):
             os.remove(log_path)
 
-def process_video(input_file, output_file, db_threshold=-45, speed_rate=1.5, min_silence_duration = 0.5):
+def process_video(input_file, output_file, db_threshold=-45, speed_rate=1.5, min_silence_duration=0.5):
     orig_duration = get_video_duration(input_file)
-    
-    """Pass 2: Use a script file to bypass Windows command length limits."""
     intervals = get_silence_intervals(input_file, db_threshold, min_silence_duration)
     
-    # Build the filter script
-    v_parts, a_parts = [], []
-    filter_script = ""
-    for i, (start, end) in enumerate(intervals):
-        filter_script += f"[0:v]trim=start={start}:end={end},setpts=PTS-STARTPTS[v{i}];"
-        filter_script += f"[0:a]atrim=start={start}:end={end},asetpts=PTS-STARTPTS[a{i}];"
-        v_parts.append(f"[v{i}]")
-        a_parts.append(f"[a{i}]")
+    if not intervals:
+        print("No speech detected. Skipping processing.")
+        return None
 
-    n = len(intervals)
-    filter_script += f"{''.join(v_parts)}concat=n={n}:v=1:a=0[v_final];"
-    filter_script += f"{''.join(a_parts)}concat=n={n}:v=0:a=1[a_final];"
-    filter_script += f"[v_final]setpts={1/speed_rate}*PTS[v_fast];"
-    filter_script += f"[a_final]atempo={speed_rate}[a_fast]"
+    # Build a single 'select' expression instead of hundreds of trim nodes
+    # Logic: select='between(t,s1,e1)+between(t,s2,e2)+...'
+    select_expr = "+".join([f"between(t,{s},{e})" for s, e in intervals])
+    
+    # We combine silence removal and speed into one streamlined filter
+    # 1. select/aselect: Keep only the speech intervals
+    # 2. setpts/asetpts: Re-time the frames so there are no gaps
+    # 3. Final setpts/atempo: Apply your 1.5x speedup
+    
+    v_filter = (
+        f"select='{select_expr}',"
+        f"setpts=N/FRAME_RATE/TB,"       # Smooths out the cuts
+        f"setpts={1/speed_rate}*PTS"     # Applies speed
+    )
+    
+    a_filter = (
+        f"aselect='{select_expr}',"
+        f"asetpts=N/SR/TB,"              # Smooths out the audio cuts
+        f"atempo={speed_rate}"           # Applies speed
+    )
 
-    # WRITE the filter to a file instead of passing it as a string
+    filter_script = f"[0:v]{v_filter}[v_fast];[0:a]{a_filter}[a_fast]"
+
     with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix=".txt") as f:
         f.write(filter_script)
-        script_path = f.name.replace("\\", "/") # FFmpeg likes forward slashes
+        script_path = f.name.replace("\\", "/")
 
     try:
         cmd = [
             "ffmpeg", "-y", "-nostdin",
             "-i", input_file,
-            "-filter_complex_script", script_path, # Read the logic from the file
+            "-filter_complex_script", script_path,
             "-map", "[v_fast]", "-map", "[a_fast]",
-            "-preset", "ultrafast", "-c:v", "libx264",
+            "-preset", "ultrafast", 
+            "-c:v", "libx264",
+            "-crf", "23",                 # Better balance of quality/speed
+            "-c:a", "aac", "-b:a", "128k", # Ensure audio remains compatible
             "-movflags", "+faststart",
             output_file
         ]
         
-        print("Starting Compression Pass (This may take a while)...")
+        print(f"Processing {len(intervals)} speech segments...")
         subprocess.run(cmd, check=True)
         print("Success!")
+        
     finally:
         if os.path.exists(script_path):
             os.remove(script_path)
             
     final_duration = get_video_duration(output_file)
     
-    stats = {
+    return {
         "original_duration": orig_duration,
         "final_duration": final_duration,
         "time_saved": orig_duration - final_duration,
+        "segments_processed": len(intervals)
     }
-    
-    return stats
     
             
 @celery.task(name="cleanup_old_videos")
