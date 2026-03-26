@@ -24,7 +24,9 @@
                     class="w-full bg-gray-900 border border-gray-700 rounded-md p-2"
                 >
                 <p class="text-xs text-gray-500 mt-1">
-                    Lower is more sensitive (e.g., -40dB)
+                    • Below -40 dB → usually true background noise / silence
+                    <br>• -40 to -30 dB → soft speech, breaths, room tone
+                    <br>• Above -30 dB → clear speech
                 </p>
             </div>
 
@@ -35,8 +37,8 @@
                     <input 
                         type="range" 
                         name="speed" 
-                        min="1.0" 
-                        max="2.5" 
+                        min="0.5" 
+                        max="4" 
                         step="0.1"
                         value="1.5"
                         oninput="this.nextElementSibling.value = this.value"

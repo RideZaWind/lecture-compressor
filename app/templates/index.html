@@ -1,12 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="w-full max-w-xl">
-    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 text-center">
-
-        <h1 class="text-2xl font-bold mb-2">Process Lecture Video</h1>
+<div class="w-full max-w-xl space-y-6"> <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 text-center">
+        <h1 class="text-2xl font-bold mb-2">Compress And Summarize Lecture Video</h1>
         <p class="text-gray-400 mb-6">
-            Enter a YouTube URL to remove silence and optimize playback.
+            Enter a YouTube URL to remove silence, optimize playback, and AI summarize the video.
         </p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -49,7 +47,31 @@
         <p class="mt-4 text-xs text-gray-500">
             Your video will be saved to the processing queue.
         </p>
+    </div>
 
+    <div class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50">
+        <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="Information-circle-icon-path... (standard info icon)"></path>
+                <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            How it works
+        </h2>
+        
+        <div class="grid grid-cols-1 gap-4 text-sm">
+            <div class="flex gap-3">
+                <div class="text-blue-500 font-bold">01</div>
+                <p class="text-gray-300"><span class="text-white font-medium">Silence Removal:</span> We scan the audio and automatically cut out dead air and long pauses.</p>
+            </div>
+            <div class="flex gap-3">
+                <div class="text-blue-500 font-bold">02</div>
+                <p class="text-gray-300"><span class="text-white font-medium">Customizable Playback Speed:</span> Set the resulting cut-down video to your prefered </p>
+            </div>
+            <div class="flex gap-3">
+                <div class="text-blue-500 font-bold">03</div>
+                <p class="text-gray-300"><span class="text-white font-medium">AI Insights:</span> Our AI generates a structured summary and key takeaways from the transcript.</p>
+            </div>
+        </div>
     </div>
 </div>
 

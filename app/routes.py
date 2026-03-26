@@ -12,7 +12,6 @@ from app.chat import get_video_data
 
 
 app = Flask(__name__)
-app.jinja_env.filters['format_seconds'] = format_seconds
 
 load_dotenv()
 PROXY = os.getenv("PROXY")
@@ -105,8 +104,7 @@ def view_status(video_id):
 def status_poll(video_id):
     document = videos_collection.find_one({"_id": ObjectId(video_id)})
     if not document:
-        # TODO: look into a better response
-        return "<div class='text-red-500'>Error: Job not found.</div>", 404
+        return "<div class='text-red-500'>Error: Video not found in database. Please try again.</div>", 404
     
     status = document.get("status")
     
@@ -114,6 +112,18 @@ def status_poll(video_id):
     if status == "completed":
         file_name = document.get("path")
         video_url = url_for('serve_video', filename=file_name)
+        
+        stats = document["stats"]
+        time_saved = stats["time_saved"]
+        original_duration = stats["original_duration"]  # avoid divide by zero
+        final_duration = stats["final_duration"]
+        params = document["params"]
+        speed = params["speed"]
+        threshold = params["threshold"]
+        min_silence = params["min_silence"]
+        
+        efficiency = round((time_saved / original_duration) * 100, 1)
+        
 
 
         return f"""
@@ -126,7 +136,7 @@ def status_poll(video_id):
                 </video>
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
                 <a href="{video_url}" download class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-md font-bold transition text-center">
                     Download MP4
                 </a>
@@ -138,6 +148,52 @@ def status_poll(video_id):
                 <a href="/" class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-md font-bold transition text-center">
                     New Video
                 </a>
+            </div>
+
+            <!-- STATS SECTION -->
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-center">
+                    <p class="text-xs text-blue-300 uppercase tracking-wider font-semibold">Time Shaved Off</p>
+                    <p class="text-3xl font-bold text-white mt-1">{format_seconds(time_saved)}</p>
+                </div>
+
+                <div class="bg-green-900/20 border border-green-500/30 p-4 rounded-xl text-center">
+                    <p class="text-xs text-green-300 uppercase tracking-wider font-semibold">Efficiency Boost</p>
+                    <p class="text-3xl font-bold text-white mt-1">{efficiency}%</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-xl p-4 border border-gray-700">
+                <h3 class="text-sm font-semibold text-gray-400 mb-3 border-b border-gray-800 pb-2">
+                    Customization Parameters
+                </h3>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Playback Speed</span>
+                        <span class="text-white font-mono">{speed}x</span>
+                    </div>
+
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Silence Threshold</span>
+                        <span class="text-white font-mono">{threshold}dB</span>
+                    </div>
+                    
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Min. Silence Length</span>
+                        <span class="text-white font-mono">{min_silence}s</span>
+                    </div>
+
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Original Length</span>
+                        <span class="text-white">{format_seconds(original_duration)}</span>
+                    </div>
+
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">New Length</span>
+                        <span class="text-white font-bold text-blue-400">{format_seconds(final_duration)}</span>
+                    </div>
+                </div>
             </div>
         </div>
         """
