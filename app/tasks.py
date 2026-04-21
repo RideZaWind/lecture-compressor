@@ -10,7 +10,7 @@ import tempfile
 from dotenv import load_dotenv
 
 from app.database import videos_collection
-from app.utils import get_video_duration
+from app.utils import get_video_duration, BASE_OPTS
     
 # 1. Initialize Celery
 # In production, move 'redis://localhost:6379/0' to an environment variable
@@ -21,7 +21,6 @@ celery = Celery('tasks', broker='redis://localhost:6379/0')
 load_dotenv()
 PROXY = os.getenv("PROXY")
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-COOKIES_PATH = os.path.join(BASE_DIR, "youtube_cookies.txt")
 EXPORT_DIR = os.path.join(BASE_DIR, "exports")
 
 # Ensure the exports folder exists so FFmpeg doesn't crash
@@ -95,12 +94,9 @@ def download_youtube_video(url, output_path_full):
         'format': 'best[ext=mp4]/best',
         'outtmpl': f'{path_without_ext}.%(ext)s',
         'noplaylist': True,
-        'proxy': PROXY,
-        'cookiefile': COOKIES_PATH,
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0',
-        }
     }
+    
+    ydl_opts.update(BASE_OPTS)
     
     print(f"Starting download to: {path_without_ext}")
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:

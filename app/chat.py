@@ -6,26 +6,19 @@ import os
 import re
 
 from app.database import videos_collection
+from app.utils import BASE_OPTS
 
 
 
 load_dotenv()
 PROXY = os.getenv("PROXY")
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-COOKIES_PATH = os.path.join(BASE_DIR, "youtube_cookies.txt")
 
 def get_video_data(video_id):
     document = videos_collection.find_one({"_id": ObjectId(video_id)})
     url = document.get("url")
     
     # 1. Fetch Metadata
-    ydl_opts = {
-        'proxy': PROXY,
-        'cookiefile': COOKIES_PATH,
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0',
-        }
-    }
+    ydl_opts = BASE_OPTS
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
         title = info.get('title')

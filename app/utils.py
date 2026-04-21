@@ -5,6 +5,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 PROXY = os.getenv("PROXY")
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+COOKIES_PATH = os.path.join(BASE_DIR, "youtube_cookies.txt")
+
+BASE_OPTS = {
+    'proxy': PROXY,
+    'cookiefile': COOKIES_PATH,
+    'http_headers': {
+        'User-Agent': 'Mozilla/5.0',
+    },
+    'extractor_args': {
+        'youtube': {
+            # Force yt-dlp to use mobile clients that don't trigger JS challenges
+            'player_client': ['android', 'ios', 'web'] 
+        }
+    },
+}
 
 def is_valid_youtube_url(url):
     # Regex to capture standard, shortened, and embed links
@@ -22,12 +38,10 @@ def can_download_video(url, cookies_path=None):
         'simulate': True,          # Do NOT download the video
         'quiet': True,             # Keep logs clean
         'no_warnings': True,
-        'proxy': PROXY,
-        'cookiefile': cookies_path,
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0',
-        }
     }
+    
+    ydl_opts.update(BASE_OPTS)
+    
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             # This only fetches the "Info Dict"

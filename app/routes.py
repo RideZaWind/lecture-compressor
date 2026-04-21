@@ -7,7 +7,7 @@ import openai
 
 from app.database import videos_collection, create_video_entry
 from app.tasks import process_video_task
-from app.utils import is_valid_youtube_url, format_seconds
+from app.utils import is_valid_youtube_url, format_seconds, BASE_OPTS
 from app.chat import get_video_data
 
 
@@ -52,12 +52,9 @@ def customize():
     ydl_opts = {
         'quiet': True, 
         'skip_download': True,
-        'proxy': PROXY,
-        'cookiefile': COOKIES_PATH,
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0',
-        }
     }
+    
+    ydl_opts.update(BASE_OPTS)
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
