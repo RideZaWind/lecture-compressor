@@ -121,8 +121,6 @@ def status_poll(video_id):
         
         efficiency = round((time_saved / original_duration) * 100, 1)
         
-
-
         return f"""
         <div id="status-display" class="bg-gray-800 p-8 rounded-2xl shadow-2xl border border-green-500/50">
             <h2 class="text-green-400 font-bold text-2xl mb-4">Compression Complete!</h2>
