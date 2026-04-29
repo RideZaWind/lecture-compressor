@@ -17,7 +17,7 @@ BASE_OPTS = {
     'extractor_args': {
         'youtube': {
             # Force yt-dlp to use mobile clients that don't trigger JS challenges
-            'player_client': ['android', 'ios', 'web'] 
+            'player_client': ['web'],
         }
     },
 }
