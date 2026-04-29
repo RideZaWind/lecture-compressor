@@ -12,6 +12,9 @@ BASE_OPTS = {
     'verbose': True,
     'proxy': PROXY,
     'cookiefile': COOKIES_PATH,
+    'http_headers': {
+        'User-Agent': 'Mozilla/5.0',
+    },
     'extractor_args': {
         'youtube': {
             # Force yt-dlp to use mobile clients that don't trigger JS challenges
