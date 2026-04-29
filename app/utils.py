@@ -10,7 +10,7 @@ COOKIES_PATH = os.path.join(BASE_DIR, "youtube_cookies.txt")
 
 BASE_OPTS = {
     # 'verbose': True,
-    'runtimes': ['node'],
+    # 'runtimes': ['node'],
     'proxy': PROXY,
     'cookiefile': COOKIES_PATH,
     'http_headers': {
@@ -19,10 +19,13 @@ BASE_OPTS = {
     'extractor_args': {
         'youtube': {
             # Force yt-dlp to use mobile clients that don't trigger JS challenges
-            'player_client': ['web'],
+            'player_client': ['ios', 'android'],
         }
     },
     'ignore_no_formats_error': True, 
+    # "js_runtimes": {'node':{}},
+    # "compat_opts": ['ejs'],      # Enables the external JS solver
+    # "js_runtime": "node",        # Specifies Node.js as the runtime
 }
 
 def is_valid_youtube_url(url):
