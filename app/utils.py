@@ -9,7 +9,8 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 COOKIES_PATH = os.path.join(BASE_DIR, "youtube_cookies.txt")
 
 BASE_OPTS = {
-    'verbose': True,
+    # 'verbose': True,
+    'runtimes': ['node'],
     'proxy': PROXY,
     'cookiefile': COOKIES_PATH,
     'http_headers': {
