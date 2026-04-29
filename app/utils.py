@@ -12,7 +12,7 @@ BASE_OPTS = {
     # 'verbose': True,
     # 'runtimes': ['node'],
     'proxy': PROXY,
-    'cookiefile': COOKIES_PATH,
+    # 'cookiefile': COOKIES_PATH,
     'http_headers': {
         'User-Agent': 'Mozilla/5.0',
     },
