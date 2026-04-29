@@ -9,17 +9,16 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 COOKIES_PATH = os.path.join(BASE_DIR, "youtube_cookies.txt")
 
 BASE_OPTS = {
+    'verbose': True,
     'proxy': PROXY,
     'cookiefile': COOKIES_PATH,
-    'http_headers': {
-        'User-Agent': 'Mozilla/5.0',
-    },
     'extractor_args': {
         'youtube': {
             # Force yt-dlp to use mobile clients that don't trigger JS challenges
             'player_client': ['web'],
         }
     },
+    'ignore_no_formats_error': True, 
 }
 
 def is_valid_youtube_url(url):
